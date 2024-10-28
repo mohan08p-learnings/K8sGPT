@@ -1,5 +1,4 @@
 # K8sGPT
-K8sGPT
 
 #### ChatGPT for your K8s cluster
 
@@ -70,6 +69,58 @@ k8sgpt auth list
 
 Again, [K8sGPT documentation](https://docs.k8sgpt.ai/reference/providers/backend/?ref=anaisurl.com) provides further information on the different AI backends available.
 
+#### Change Backend to LocalAI
+
+Installing Ollama
+
+Ollama is an open-source large model tool that allows you to easily install and run various large models locally or in the cloud. It is very user-friendly and can be run with simple commands. On macOS, you can install it with a single command using homebrew:
+
+```
+brew install ollama
+```
+
+Verify the Ollama version
+
+```
+mohanpawar@MohanPawars-MacBook-Pro K8sGPT % ollama -v
+ollama version is 0.3.14
+```
+
+On Linux, you can also install it with the official script.
+
+```
+curl -sSL https://ollama.com/install.sh | sh
+```
+
+Start Ollama and set the listening address to 0.0.0.0 through an environment variable to allow access from containers or K8s clusters.
+
+OLLAMA_HOST=0.0.0.0 ollama start
+
+In another terminal you can download and run large models `Llama3`
+
+Llama3 has two versions: 8B and 70B.
+
+I am running it on macOS, so I chose the 8B version. The 8B version is 4.7 GB, and it takes 3–4 minutes to download with a fast internet connection.
+
+```
+mohanpawar@MohanPawars-MacBook-Pro K8sGPT % ollama run llama3
+```
+
+We will use the Ollama REST API as the backend for k8sgpt, serving as the inference provider. Here, we select the backend type as localai because LocalAI is compatible with the OpenAI API, and the actual provider will still be Ollama running Llama.
+
+```
+k8sgpt auth add --backend localai --model llama3 --baseurl http://localhost:11434/v1
+```
+
+Set it as the default provider.
+
+```
+mohanpawar@MohanPawars-MacBook-Pro K8sGPT % k8sgpt auth default --provider localai
+Default provider set to localai
+```
+
+#### K8s Cluster
+
 From the K8s cluster I have minikube cluster installed on my workstation as below,
 
 ```
@@ -77,6 +128,8 @@ mohanpawar@MohanPawars-MacBook-Pro K8sGPT % kubectl get nodes
 NAME       STATUS   ROLES           AGE   VERSION
 minikube   Ready    control-plane   83d   v1.30.0
 ```
+
+#### Deploy sample application
 
 Next, we will install a deployment into our K8s cluster. The pod will go into `CrashLoopBackOff`. 
 
